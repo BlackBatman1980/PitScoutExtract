@@ -1,6 +1,6 @@
 # Created By Prishad Mitchell -- Replit(5tup1d) -- Github(BlackBatman1980)
-# Read the ReadMe for more info
-# For AngelBotics -- Team 1339
+# Read the README for more info
+# For AngelBotics Team 1339
 
 import os
 import sys
@@ -72,7 +72,6 @@ def Start(fileName):
     json_data = json.load(json_file)
   
   teamIDS = []
-  totalGames = []
 
   for i in range(100):
     try:
@@ -82,19 +81,24 @@ def Start(fileName):
       pass
     
   DATA = json_data["documents"]
-  for index in range(len(DATA)):
-    totalGames.append(DATA[index]["__v"])
+  totalTeams = len(DATA)
+  print(f"[*] Extracting Data From A Total Of {totalTeams} Teams")
 
-  for i in range(len(teamIDS)):
-    for id,V in zip(teamIDS, totalGames):
-      obj = Find(id,V,json_data, teamIDS.index(teamIDS[i]))
+  teamCounter = 0
+  for id in teamIDS:
+    if teamCounter >= totalTeams:
+      pass
+      
+    else:
+      print("[*] Getting From Team", id)
+      totalGames = len(DATA[teamCounter]["games"])
+      teamObj = Find(id,totalGames,json_data, teamIDS.index(id))
       # obj = Find("1111",_v,json_data, 7)
-      GET(obj)
-    
+      GET(teamObj)
+      teamCounter += 1
   cleanUp()
-  
 
-def Find(ID,V,json_data,index):
+def Find(ID,TG,json_data,index):
   global teamIndex
   global ERRORS
 
@@ -113,7 +117,14 @@ def Find(ID,V,json_data,index):
   brokeDownMedian = []
   cargoLowMedian = []
   cargoHighMedian = []
+  cycleTime = []
+  cargoShot = []
+  HighGoal = []
+  cargoScored = []
+  cargoHighMedian = []
+  cargoLowMedian = []
 
+  
   DATA = (json_data["documents"][index]).get("isPitScouted", {})
   isPitScouted.append(str(DATA))
   
@@ -141,7 +152,7 @@ def Find(ID,V,json_data,index):
         else:
           autoRoutineHeaders.append(str(list(DATA[g])[l]))
   
-  except Exception as Error:
+  except:
     ERRORS += 1
 
   try:
@@ -153,7 +164,7 @@ def Find(ID,V,json_data,index):
       for i in range(len(DATA)):
         autoRoutineData.append(str(DATA[i][auto]))
       
-  except Exception as Error:
+  except:
     ERRORS += 1
 
   
@@ -169,7 +180,7 @@ def Find(ID,V,json_data,index):
         pitScoutData.append(str(DATA))
 
         
-  except Exception as Error:
+  except:
     ERRORS += 1
 
 
@@ -178,7 +189,7 @@ def Find(ID,V,json_data,index):
   DATA = (json_data["documents"][index]).get("games", {})
   
   # Get Notes On Games
-  for i in range(V):
+  for i in range(TG):
     try:
       teamNotes.append(DATA[i]["notes"])
     except:
@@ -189,7 +200,7 @@ def Find(ID,V,json_data,index):
   
   totalCycles = []
     
-  for i in range(V):
+  for i in range(TG):
     try:
       cycle = DATA[i]["cycles"]
       totalCycles.append(len(cycle))
@@ -198,59 +209,90 @@ def Find(ID,V,json_data,index):
     
     try:
       m = (DATA[i]["cargoShotHigh"])
-      shotHighMedian.append(m)
+      if m == None:
+        pass
+      else:
+        shotHighMedian.append(m)
       
       m = (DATA[i]["cargoShotLow"])
-      shotLowMedian.append(m)
-    
-      m = (DATA[i]["cargoScoredHigh"])
-      scoredHighMedian.append(m)
-      
-      m = (DATA[i]["cargoScoredLow"])
-      scoredLowMedian.append(m)
-      
-      m = (DATA[i]["brokeDown"])
-      brokeDownMedian.append(m)
-      
-      m = (DATA[i]["climb"])
-      climbMedian.append(m)
+      if m == None:
+        pass
+      else:
+        shotLowMedian.append(m)
+
+      if m == None:
+        pass
+      else:
+        m = (DATA[i]["cargoScoredHigh"])
+        scoredHighMedian.append(m)
+
+      if m == None:
+        pass
+      else:
+        m = (DATA[i]["cargoScoredLow"])
+        scoredLowMedian.append(m)
+
+      if m == None:
+        pass
+      else:
+        m = (DATA[i]["brokeDown"])
+        brokeDownMedian.append(m)
+
+      if m == None:
+        pass
+      else:
+        m = (DATA[i]["climb"])
+        climbMedian.append(m)
       
     except:
       ERRORS += 1
     
     try:
-      cargoHighMedian = []
-      cargoLowMedian = []
+
       l = DATA[i]["auto"]["cargoLow"]
       h = DATA[i]["auto"]["cargoHigh"]
-      cargoHighMedian.append(h)
-      cargoLowMedian.append(l)
+      if l == None or h == None:
+        pass
+      else:
+        cargoHighMedian.append(h)
+        cargoLowMedian.append(l)
       
     except:
       ERRORS += 1
     
     try:
-      cycleTime = []
-      cargoShot = []
-      HighGoal = []
-      cargoScored = []
       
       
       for y in range(len(totalCycles)):
         for z in range(totalCycles[y]):
-          cycleTime.append(DATA[i]["cycles"][z]["cycleTime"])
-          cargoShot.append(DATA[i]["cycles"][z]["cargoShot"])
-          HighGoal.append(DATA[i]["cycles"][z]["HighGoal"])
-          cargoScored.append(DATA[i]["cycles"][z]["cargoScored"])
-      
+          
+          data = DATA[i]["cycles"][z]["cycleTime"]
+          if data == None:
+            pass
+          else:
+            cycleTime.append(data)
+
+          if data == None:
+            pass
+          else:
+            data = DATA[i]["cycles"][z]["cargoShot"]
+            cargoShot.append(data)
+
+          if data == None:
+            pass
+          else:
+            data = DATA[i]["cycles"][z]["HighGoal"]
+            HighGoal.append(data)
+
+          if data == None:
+            pass
+          else:
+            data = DATA[i]["cycles"][z]["cargoScored"]
+            cargoScored.append(data)
+          
     except:
       ERRORS += 1
-  
-  # test = str(median(cycleTime))
-  # print(test)
-  # exit()
-  
-  # TODO -- CYCLE TIME IS NOT WORKING -- statistics.StatisticsError: no median for empty data
+    
   cycleTimeMedian = str(median(cycleTime))
   cargoShotMedian = str(median(cargoShot))
   HighGoalMedian = str(median(HighGoal))
@@ -263,8 +305,23 @@ def Find(ID,V,json_data,index):
   climbMedian = str(median(climbMedian))
   cargoHighMedian = str(median(cargoHighMedian))
   cargoLowMedian = str(median(cargoLowMedian))
+
+
+  # cycleTimeMedian
+  # cargoShotMedian
+  # HighGoalMedian
+  # cargoScoredMedian
+  # scoredHighMedian
+  # scoredLowMedian
+  # shotHighMedian
+  # shotLowMedian
+  # brokeDownMedian
+  # climbMedian
+  # cargoHighMedian
+  # cargoLowMedian
   
-  medians = [test, cargoShotMedian, HighGoalMedian, cargoScoredMedian, scoredHighMedian, scoredLowMedian, shotHighMedian, shotLowMedian, brokeDownMedian, climbMedian, cargoHighMedian, cargoLowMedian]
+  medians = [cycleTimeMedian, cargoShotMedian, HighGoalMedian, cargoScoredMedian, scoredHighMedian, scoredLowMedian, shotHighMedian, shotLowMedian, brokeDownMedian, climbMedian, cargoHighMedian, cargoLowMedian]
+
   
   # Make an instance of this team to work with
   team_obj = TEAM(ID, medians=medians, isPitScouted=isPitScouted , autoRoutineHeaders=autoRoutineHeaders , autoRoutineData=autoRoutineData , pitScoutHeaders=pitScoutHeaders , pitScoutData=pitScoutData)
@@ -293,6 +350,8 @@ def GET(self):
   
   abetIndex = 1
 
+
+  # Initialize the worksheet
   wb.create_sheet(self.ID)
   worksheet = wb[self.ID]
   worksheet.title = "Team " + self.ID
@@ -325,12 +384,13 @@ def GET(self):
   counter = 0
   
   for data in self.autoRoutineData:
-    if counter == 4:
+    if counter == 2:
+      counter += 1
+      cell = abetL[abetIndex] + str(ROW_INDEX)
+      PUT(worksheet, str(data), cell)
       counter = 0
       ROW_INDEX = 7
       abetIndex += 1
-      cell = abetL[abetIndex] + str(ROW_INDEX)
-      PUT(worksheet, str(data), cell)
 
     else:
       cell = abetL[abetIndex] + str(ROW_INDEX)
@@ -341,32 +401,57 @@ def GET(self):
   abetIndex = 0
   ROW_INDEX = 12
   counter = 0
-  dex = 0
   
   
   # Set The Headers First
   cell = abetL[abetIndex] + str(ROW_INDEX)
   
+  # cycleTimeMedian
+  # cargoShotMedian
+  # HighGoalMedian
+  # cargoScoredMedian
+  # scoredHighMedian
+  # scoredLowMedian
+  # shotHighMedian
+  # shotLowMedian
+  # brokeDownMedian
+  # climbMedian
+  # cargoHighMedian
+  # cargoLowMedian
+  
   PUT(worksheet, "Average Cycle Time", cell)
   abetIndex += 1
+  cell = abetL[abetIndex] + str(ROW_INDEX)
   PUT(worksheet, "Average Cargo Shots", cell)
   abetIndex += 1
+  cell = abetL[abetIndex] + str(ROW_INDEX)
   PUT(worksheet, "Average High Goals", cell)
   abetIndex += 1
+  cell = abetL[abetIndex] + str(ROW_INDEX)
+  PUT(worksheet, "Average Cargo Scored", cell)
+  abetIndex += 1
+  cell = abetL[abetIndex] + str(ROW_INDEX)
   PUT(worksheet, "Average High Scored", cell)
   abetIndex += 1
+  cell = abetL[abetIndex] + str(ROW_INDEX)
   PUT(worksheet, "Average Low Scored", cell)
   abetIndex += 1
+  cell = abetL[abetIndex] + str(ROW_INDEX)
   PUT(worksheet, "Average High Shots", cell)
   abetIndex += 1
+  cell = abetL[abetIndex] + str(ROW_INDEX)
   PUT(worksheet, "Average Low Shots", cell)
   abetIndex += 1
+  cell = abetL[abetIndex] + str(ROW_INDEX)
   PUT(worksheet, "Average Break Down", cell)
   abetIndex += 1
+  cell = abetL[abetIndex] + str(ROW_INDEX)
   PUT(worksheet, "Average Climbs", cell)
   abetIndex += 1
+  cell = abetL[abetIndex] + str(ROW_INDEX)
   PUT(worksheet, "Average High Cargo", cell)
   abetIndex += 1
+  cell = abetL[abetIndex] + str(ROW_INDEX)
   PUT(worksheet, "Average Low Cargo", cell)
   
   abetIndex = 0
@@ -376,10 +461,8 @@ def GET(self):
   for data in self.medians:
     try:
       cell = abetL[abetIndex] + str(ROW_INDEX)
-      data = data[dex]
-      PUT(worksheet, str(data), cell)
+      PUT(worksheet, data, cell)
       abetIndex += 1
-      dex += 1
   
     except:
       ERRORS += 1
