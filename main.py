@@ -40,7 +40,8 @@ time.sleep(2)
 try:
   xlsxFile = sys.argv[1]
 except:
-  print("[!] Please provide a file name")
+  print("[!] Please provide an xlsx file name")
+  print("Usage: python3 main.py <file.xlsx>")
   exit()
 
 ROW_INDEX = 1
