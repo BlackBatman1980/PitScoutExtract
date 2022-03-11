@@ -9,6 +9,8 @@ import random
 import time
 import json
 
+FAILED = []
+
 if os.name == "nt":
   clear = "cls"
   rm = "del"
@@ -46,7 +48,6 @@ except:
 
 ROW_INDEX = 1
 ERRORS = 0
-teamIndex = 0
 abet = "abcdefghijklmnopqrstuvwxyz"
 abet = abet.upper()
 abetL = []
@@ -74,7 +75,7 @@ def Start(fileName):
   
   teamIDS = []
 
-  for i in range(100):
+  for i in range(500):
     try:
       DATA = (json_data["documents"][i])["_id"]
       teamIDS.append(str(DATA))
@@ -91,16 +92,26 @@ def Start(fileName):
       pass
       
     else:
-      print("[*] Getting From Team", id)
-      totalGames = len(DATA[teamCounter]["games"])
-      teamObj = Find(id,totalGames,json_data, teamIDS.index(id))
-      # obj = Find("1111",_v,json_data, 7)
-      GET(teamObj)
-      teamCounter += 1
+      try:
+        print("[*] Getting From Team", id)
+        totalGames = len(DATA[teamCounter]["games"])
+        teamObj = Find(id,totalGames,json_data, teamIDS.index(id))
+        errno = GET(teamObj)
+        teamCounter += 1
+      except Exception as Error:
+        # raise Error
+        FAILED.append(id)
+        logErrors(Error)
+        # exit()
+        # print("Failed to get team", id)
   cleanUp()
 
+def logErrors(error):
+  with open("main.log", "a") as log:
+    log.write(str(error))
+    log.write("\n")
+    
 def Find(ID,TG,json_data,index):
-  global teamIndex
   global ERRORS
 
 
@@ -153,8 +164,9 @@ def Find(ID,TG,json_data,index):
         else:
           autoRoutineHeaders.append(str(list(DATA[g])[l]))
   
-  except:
+  except Exception as Error:
     ERRORS += 1
+    logErrors(Error)
 
   try:
     for u in range(len(autoRoutineHeaders)):
@@ -165,8 +177,9 @@ def Find(ID,TG,json_data,index):
       for i in range(len(DATA)):
         autoRoutineData.append(str(DATA[i][auto]))
       
-  except:
+  except Exception as Error:
     ERRORS += 1
+    logErrors(Error)
 
   
   try:
@@ -181,8 +194,9 @@ def Find(ID,TG,json_data,index):
         pitScoutData.append(str(DATA))
 
         
-  except:
+  except Exception as Error:
     ERRORS += 1
+    logErrors(Error)
 
 
   #--# Extracting Game Data #--#
@@ -193,121 +207,34 @@ def Find(ID,TG,json_data,index):
   for i in range(TG):
     try:
       teamNotes.append(DATA[i]["notes"])
-    except:
+    except Exception as Error:
       ERRORS += 1
+      logErrors(Error)
   
   #--# Averaging Data #--#
   # Extracting the data first
   
-  totalCycles = []
-    
-  for i in range(TG):
-    try:
-      cycle = DATA[i]["cycles"]
-      totalCycles.append(len(cycle))
-    except:
-      ERRORS += 1
-    
-    try:
-      m = (DATA[i]["cargoShotHigh"])
-      if m == None:
-        pass
-      else:
-        shotHighMedian.append(m)
       
-      m = (DATA[i]["cargoShotLow"])
-      if m == None:
-        pass
-      else:
-        shotLowMedian.append(m)
-
-      if m == None:
-        pass
-      else:
-        m = (DATA[i]["cargoScoredHigh"])
-        scoredHighMedian.append(m)
-
-      if m == None:
-        pass
-      else:
-        m = (DATA[i]["cargoScoredLow"])
-        scoredLowMedian.append(m)
-
-      if m == None:
-        pass
-      else:
-        m = (DATA[i]["brokeDown"])
-        brokeDownMedian.append(m)
-
-      if m == None:
-        pass
-      else:
-        m = (DATA[i]["climb"])
-        climbMedian.append(m)
-      
-    except:
-      ERRORS += 1
+  team_obj = TEAM(ID)
+  team_obj.isPitScouted=isPitScouted
+  team_obj.pitScoutData=[]
+  team_obj.pitScoutHeaders=[]
+  team_obj.autoRoutineHeaders=[]
+  team_obj.autoRoutineData=[]
+  
+  try:
+    team_obj.pitScoutData=pitScoutData
+    team_obj.pitScoutHeaders=pitScoutHeaders
+    team_obj.autoRoutineHeaders=autoRoutineHeaders
+  
+    team_obj.autoRoutineData=autoRoutineData
     
-    try:
-
-      l = DATA[i]["auto"]["cargoLow"]
-      h = DATA[i]["auto"]["cargoHigh"]
-      if l == None or h == None:
-        pass
-      else:
-        cargoHighMedian.append(h)
-        cargoLowMedian.append(l)
-      
-    except:
-      ERRORS += 1
+  except Exception as Error:
+    ERRORS += 1
+    logErrors(Error)
     
-    try:
-      
-      
-      for y in range(len(totalCycles)):
-        for z in range(totalCycles[y]):
-          
-          data = DATA[i]["cycles"][z]["cycleTime"]
-          if data == None:
-            pass
-          else:
-            cycleTime.append(data)
-
-          if data == None:
-            pass
-          else:
-            data = DATA[i]["cycles"][z]["cargoShot"]
-            cargoShot.append(data)
-
-          if data == None:
-            pass
-          else:
-            data = DATA[i]["cycles"][z]["HighGoal"]
-            HighGoal.append(data)
-
-          if data == None:
-            pass
-          else:
-            data = DATA[i]["cycles"][z]["cargoScored"]
-            cargoScored.append(data)
-          
-    except:
-      ERRORS += 1
-    
-  cycleTimeMedian = str(median(cycleTime))
-  cargoShotMedian = str(median(cargoShot))
-  HighGoalMedian = str(median(HighGoal))
-  cargoScoredMedian = str(median(cargoScored))
-  scoredHighMedian = str(median(scoredHighMedian))
-  scoredLowMedian = str(median(scoredLowMedian))
-  shotHighMedian = str(median(shotHighMedian))
-  shotLowMedian = str(median(shotLowMedian))
-  brokeDownMedian = str(median(brokeDownMedian))
-  climbMedian = str(median(climbMedian))
-  cargoHighMedian = str(median(cargoHighMedian))
-  cargoLowMedian = str(median(cargoLowMedian))
-
-
+  return team_obj
+  
   # cycleTimeMedian
   # cargoShotMedian
   # HighGoalMedian
@@ -320,17 +247,10 @@ def Find(ID,TG,json_data,index):
   # climbMedian
   # cargoHighMedian
   # cargoLowMedian
-  
-  medians = [cycleTimeMedian, cargoShotMedian, HighGoalMedian, cargoScoredMedian, scoredHighMedian, scoredLowMedian, shotHighMedian, shotLowMedian, brokeDownMedian, climbMedian, cargoHighMedian, cargoLowMedian]
 
-  
-  # Make an instance of this team to work with
-  team_obj = TEAM(ID, medians=medians, isPitScouted=isPitScouted , autoRoutineHeaders=autoRoutineHeaders , autoRoutineData=autoRoutineData , pitScoutHeaders=pitScoutHeaders , pitScoutData=pitScoutData)
-  
-  return team_obj
 
 class TEAM:
-  def __init__(self, teamID, medians, isPitScouted=None, autoRoutineHeaders=None, autoRoutineData=None, pitScoutHeaders=None, pitScoutData=None):
+  def __init__(self, teamID, isPitScouted=None, autoRoutineHeaders=None, autoRoutineData=None, pitScoutHeaders=None, pitScoutData=None):
     
     self.ID = teamID
     self.isPitScouted = isPitScouted
@@ -338,11 +258,10 @@ class TEAM:
     self.autoRoutineData = autoRoutineData
     self.pitScoutHeaders = pitScoutHeaders
     self.pitScoutData = pitScoutData
-    self.medians = medians
 
 
 def PUT(worksheet, data, cell):
-  worksheet[cell] = data
+  worksheet[cell] = str(data)
   
 
 def GET(self):
@@ -353,11 +272,19 @@ def GET(self):
 
 
   # Initialize the worksheet
-  wb.create_sheet(self.ID)
+  try:
+    wb.create_sheet(self.ID)
+  except Exception:
+    if Exception == AttributeError:
+      print("[x] Unable to create team in spreadsheet...")
+      print("[x] Deleting Team...")
+      del self
+      return False
+      
   worksheet = wb[self.ID]
   worksheet.title = "Team " + self.ID
   PUT(worksheet, "Is PitScouted", "A1")
-  PUT(worksheet, self.isPitScouted[0], "A2")
+  PUT(worksheet, self.isPitScouted, "A2")
 
   for data in self.pitScoutHeaders:
     cell = abetL[abetIndex] + str(ROW_INDEX)
@@ -383,104 +310,50 @@ def GET(self):
   abetIndex = 0
   ROW_INDEX = 7
   counter = 0
+  maxLen = len(self.autoRoutineHeaders)
   
-  for data in self.autoRoutineData:
-    if counter == 2:
-      counter += 1
+  
+  for i in range(maxLen):
+    data = self.autoRoutineData[i]
+    if data == None:
+      data = "Null"
+
+    if counter == maxLen:
+      abetIndex = 0
+      ROW_INDEX += 1
       cell = abetL[abetIndex] + str(ROW_INDEX)
       PUT(worksheet, str(data), cell)
       counter = 0
-      ROW_INDEX = 7
-      abetIndex += 1
-
+    
     else:
       cell = abetL[abetIndex] + str(ROW_INDEX)
       PUT(worksheet, str(data), cell)
-      ROW_INDEX += 1
       counter += 1
-      
-  abetIndex = 0
-  ROW_INDEX = 12
-  counter = 0
-  
-  
-  # Set The Headers First
-  cell = abetL[abetIndex] + str(ROW_INDEX)
-  
-  # cycleTimeMedian
-  # cargoShotMedian
-  # HighGoalMedian
-  # cargoScoredMedian
-  # scoredHighMedian
-  # scoredLowMedian
-  # shotHighMedian
-  # shotLowMedian
-  # brokeDownMedian
-  # climbMedian
-  # cargoHighMedian
-  # cargoLowMedian
-  
-  PUT(worksheet, "Average Cycle Time", cell)
-  abetIndex += 1
-  cell = abetL[abetIndex] + str(ROW_INDEX)
-  PUT(worksheet, "Average Cargo Shots", cell)
-  abetIndex += 1
-  cell = abetL[abetIndex] + str(ROW_INDEX)
-  PUT(worksheet, "Average High Goals", cell)
-  abetIndex += 1
-  cell = abetL[abetIndex] + str(ROW_INDEX)
-  PUT(worksheet, "Average Cargo Scored", cell)
-  abetIndex += 1
-  cell = abetL[abetIndex] + str(ROW_INDEX)
-  PUT(worksheet, "Average High Scored", cell)
-  abetIndex += 1
-  cell = abetL[abetIndex] + str(ROW_INDEX)
-  PUT(worksheet, "Average Low Scored", cell)
-  abetIndex += 1
-  cell = abetL[abetIndex] + str(ROW_INDEX)
-  PUT(worksheet, "Average High Shots", cell)
-  abetIndex += 1
-  cell = abetL[abetIndex] + str(ROW_INDEX)
-  PUT(worksheet, "Average Low Shots", cell)
-  abetIndex += 1
-  cell = abetL[abetIndex] + str(ROW_INDEX)
-  PUT(worksheet, "Average Break Down", cell)
-  abetIndex += 1
-  cell = abetL[abetIndex] + str(ROW_INDEX)
-  PUT(worksheet, "Average Climbs", cell)
-  abetIndex += 1
-  cell = abetL[abetIndex] + str(ROW_INDEX)
-  PUT(worksheet, "Average High Cargo", cell)
-  abetIndex += 1
-  cell = abetL[abetIndex] + str(ROW_INDEX)
-  PUT(worksheet, "Average Low Cargo", cell)
-  
-  abetIndex = 0
-  ROW_INDEX += 1
-  
-  # cycleTimeMedian, cargoShotMedian, HighGoalMedian, cargoScoredMedian, scoredHighMedian, scoredLowMedian, shotHighMedian, shotLowMedian, brokeDownMedian, climbMedian, cargoHighMedian, cargoLowMedian
-  for data in self.medians:
-    try:
-      cell = abetL[abetIndex] + str(ROW_INDEX)
-      PUT(worksheet, data, cell)
       abetIndex += 1
+      
+
   
-    except:
-      ERRORS += 1
-           
   ROW_INDEX = 1
   wb.save(xlsxFile)
 
+  print("[+] Done")
+
 
 def cleanUp():
+  os.system(clear)
   print("[*] Cleaning Up...")
   os.system(f"{rm} *.json")
   time.sleep(1)
   print("[+] Done!")
   print("[*] Encountered", ERRORS, "Errors")
-  time.sleep(1)
+  if len(FAILED) == 0:
+    print("[+] No major errors encountered!")
+  else:
+    print("[x] The program failed to extract information from the following teams:", FAILED)
+    print("[!] See 'main.log' for more info")
+    time.sleep(1)
   exit()
-  
+
 wb = openpyxl.load_workbook(xlsxFile)
 spreadsheet = wb.active
 
@@ -496,7 +369,7 @@ payload = json.dumps({
 headers = {
     'Content-Type': 'application/json',
     'Access-Control-Request-Headers': '*',
-    'api-key': 'arU5b7LKqMYun0lpPoUV3EXBxZ7YFcybYa2ZH9G4FSWnV9hnG6vXs38Al8tFVDqg'
+    'api-key': '5yFyYYw67A0qv1yWrH55V8JgltCOau314l8lq41wDxe5U8rLYzpVpCZIoZSWVqH3'
 }
 
 response = requests.request("POST", url, headers=headers, data=payload)
@@ -506,6 +379,7 @@ if response.status_code == 200:
 else:
     print("[!] There was an error connecting to the database")
     print("Status code of request: {}".format(response.status_code))
+    print("[*] Check the api key and/or url")
     exit()
     
 if len(response.content) == 0:
