@@ -4,12 +4,12 @@
 
 import os
 import sys
-from statistics import median
 import random
 import time
 import json
 
 FAILED = []
+DONE = []
 
 if os.name == "nt":
   clear = "cls"
@@ -84,7 +84,6 @@ def Start(fileName):
     
   DATA = json_data["documents"]
   totalTeams = len(DATA)
-  print(f"[*] Extracting Data From A Total Of {totalTeams} Teams")
 
   teamCounter = 0
   for id in teamIDS:
@@ -93,17 +92,20 @@ def Start(fileName):
       
     else:
       try:
+        os.system(clear)
+        print(f"[*] Extracting Data From A Total Of {totalTeams} Teams")
+        print("[+] Finished with", str(teamCounter),"teams")
+        print("[%]", round(100*(teamCounter / totalTeams), 2))
         print("[*] Getting From Team", id)
         totalGames = len(DATA[teamCounter]["games"])
         teamObj = Find(id,totalGames,json_data, teamIDS.index(id))
-        errno = GET(teamObj)
+        GET(teamObj)
         teamCounter += 1
+        DONE.append(str(id))
       except Exception as Error:
-        # raise Error
         FAILED.append(id)
         logErrors(Error)
-        # exit()
-        # print("Failed to get team", id)
+  time.sleep(1)
   cleanUp()
 
 def logErrors(error):
@@ -121,20 +123,6 @@ def Find(ID,TG,json_data,index):
   pitScoutHeaders = []
   pitScoutData = []
   teamNotes = []
-  shotLowMedian = []
-  shotHighMedian = []
-  scoredLowMedian = []
-  scoredHighMedian = []
-  climbMedian = []
-  brokeDownMedian = []
-  cargoLowMedian = []
-  cargoHighMedian = []
-  cycleTime = []
-  cargoShot = []
-  HighGoal = []
-  cargoScored = []
-  cargoHighMedian = []
-  cargoLowMedian = []
 
   
   DATA = (json_data["documents"][index]).get("isPitScouted", {})
@@ -234,19 +222,6 @@ def Find(ID,TG,json_data,index):
     logErrors(Error)
     
   return team_obj
-  
-  # cycleTimeMedian
-  # cargoShotMedian
-  # HighGoalMedian
-  # cargoScoredMedian
-  # scoredHighMedian
-  # scoredLowMedian
-  # shotHighMedian
-  # shotLowMedian
-  # brokeDownMedian
-  # climbMedian
-  # cargoHighMedian
-  # cargoLowMedian
 
 
 class TEAM:
@@ -271,16 +246,9 @@ def GET(self):
   abetIndex = 1
 
 
-  # Initialize the worksheet
-  try:
-    wb.create_sheet(self.ID)
-  except Exception:
-    if Exception == AttributeError:
-      print("[x] Unable to create team in spreadsheet...")
-      print("[x] Deleting Team...")
-      del self
-      return False
-      
+  # Initialize the worksheet #
+  
+  wb.create_sheet(self.ID)    
   worksheet = wb[self.ID]
   worksheet.title = "Team " + self.ID
   PUT(worksheet, "Is PitScouted", "A1")
@@ -311,9 +279,10 @@ def GET(self):
   ROW_INDEX = 7
   counter = 0
   maxLen = len(self.autoRoutineHeaders)
+  maxWth = len(self.autoRoutineData)
   
   
-  for i in range(maxLen):
+  for i in range(maxWth):
     data = self.autoRoutineData[i]
     if data == None:
       data = "Null"
@@ -321,23 +290,19 @@ def GET(self):
     if counter == maxLen:
       abetIndex = 0
       ROW_INDEX += 1
+      counter = 0
       cell = abetL[abetIndex] + str(ROW_INDEX)
       PUT(worksheet, str(data), cell)
-      counter = 0
     
     else:
       cell = abetL[abetIndex] + str(ROW_INDEX)
       PUT(worksheet, str(data), cell)
       counter += 1
-      abetIndex += 1
-      
+      abetIndex += 1 
 
   
   ROW_INDEX = 1
   wb.save(xlsxFile)
-
-  print("[+] Done")
-
 
 def cleanUp():
   os.system(clear)
