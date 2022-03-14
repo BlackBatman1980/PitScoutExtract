@@ -39,6 +39,7 @@ except:
 
 os.system(clear)
 time.sleep(2)
+
 try:
   xlsxFile = sys.argv[1]
 except:
@@ -325,7 +326,7 @@ spreadsheet = wb.active
 url = "https://data.mongodb-api.com/app/data-abado/endpoint/data/beta/action/find"
 
 payload = json.dumps({
-    "collection": "teams",
+    "collection": "competitions",
     "database": "ScoutingCluster",
     "dataSource": "ScoutingCluster",
     "projection": {}
